@@ -1,7 +1,7 @@
 $(function() { jQuery(function($) {
   //must fill these configurations
   var configuration = {
-    'uri': 'sip:user@domain', // must add full sip
+    'uri': 'sip:user@domain',
     'password': '', // FILL PASSWORD HERE,
     'ws_servers': 'wss://sandbox.2600hz.com:5065/'
   };
@@ -47,7 +47,7 @@ $(function() { jQuery(function($) {
       configuration.password = null;
       updateUI();
     });
-    phone.on('newRTCSession', (ev) => {
+    phone.on('newRTCSession', function(ev) {
       console.log('new session establishing ...', ev);
       //ev.request.call_id
       var newSession = ev.session;
@@ -84,7 +84,7 @@ $(function() { jQuery(function($) {
         console.log('session accepted', e);
         updateUI();
       });
-      session.on('confirmed', () => {
+      session.on('confirmed', function() {
         const localStreams = session.connection.getLocalStreams();
         console.log('confirmed with a number of streams', localStreams.length);
         var localStream = localStreams[0];
@@ -95,7 +95,7 @@ $(function() { jQuery(function($) {
         };
         updateUI();
       });
-      session.on('addstream', (e) => {
+      session.on('addstream', function(e) {
         console.log('addstream', e);
         //incomingCallAudio.pause();
         window.oSipAudio.srcObject = e.stream;
@@ -117,6 +117,7 @@ $(function() { jQuery(function($) {
     phone.start();
   }
   
+  //var session;
   updateUI();
   
   $('#connectCall').click(function() {
