@@ -19,7 +19,7 @@ $(function() { jQuery(function($) {
   var callOptions = {
     mediaConstraints: {
       audio: true,
-      video: false
+      video: true
     },
     pcConfig: {
         iceServers: [
@@ -38,6 +38,22 @@ $(function() { jQuery(function($) {
     console.log('connect to sip server ', configuration);
     JsSIP.debug.enable('JsSIP:*'); // more detailed debug output
     phone = new JsSIP.UA(configuration);
+
+    // WebSocket connection events
+    phone.on('connecting', function(ev) {
+      console.log('socket is connecting', ev);
+    });
+    phone.on('connected', function(ev) {
+      console.log('socket is connected', ev);
+    });
+    phone.on('disconnected', function(ev) {
+      console.log('socket is disconnected', ev);
+    });
+
+    // SIP registration events
+    phone.on('unregistered', function(ev) {
+      console.log('device is unregistered now', ev);
+    });
     phone.on('registered', function(ev) {
       console.log('device is registered now', ev);
     });
@@ -71,6 +87,9 @@ $(function() { jQuery(function($) {
       session.on('connecting', (e) =>{
         console.log('connecting', e);
       });
+      session.on('process', (e) =>{
+        console.log('process', e);
+      });
       session.on('ended', (e) => {
         console.log('call ended');
         // need a way to show on UI
@@ -85,28 +104,39 @@ $(function() { jQuery(function($) {
         updateUI();
       });
       session.on('confirmed', function() {
+        // count the local and remote streams
         const localStreams = session.connection.getLocalStreams();
-        console.log('confirmed with a number of streams', localStreams.length);
+        console.log('confirmed with a number of local streams', localStreams.length);
+
+        const remoteStreams = session.connection.getRemoteStreams();
+        console.log('confirmed with a number of remote streams', remoteStreams.length);
+
         var localStream = localStreams[0];
-        localView.src = localStream;
+        //localView.src = localStream;
         var dtmfSender = session.connection.createDTMFSender(localStream.getAudioTracks()[0])
         session.sendDTMF = function(tone) {
           dtmfSender.insertDTMF(tone);
         };
+
         updateUI();
       });
       session.on('addstream', function(e) {
         console.log('addstream', e);
-        //incomingCallAudio.pause();
-        window.oSipAudio.srcObject = e.stream;
-        remoteAudio.src = window.URL.createObjectURL(e.stream);
-        //remoteAudio.src = e.stream;
-        //remoteView.src = window.URL.createObjectURL(e.stream); 
+        incomingCallAudio.pause();
+
+        //attach remote stream to remoteView
+        //remoteAudio.src = window.URL.createObjectURL(e.stream);
+        remoteAudio.srcObject = e.stream;
+        //remoteAudio.play();
+
+        // Attach local stream to selfView
+        //localView.src = window.URL.createObjectURL(session.connection.getLocalStreams()[0]);
+        const peerconnection = session.connection;
+        console.log('addstream peerconnection local and remote stream counts ',
+          peerconnection.getLocalStreams.length, peerconnection.getRemoteStreams.length);
+        localView.srcObject = peerconnection.getLocalStreams()[0];
+        remoteView.srcObject = peerconnection.getRemoteStreams()[0];
         
-        /*var audio = document.createElement('audio');
-        audio.srcObject = e.stream;
-        audio.play();
-        */
       });
       if (session.direction === 'incoming') {
         console.log('incoming session direction');
@@ -117,7 +147,6 @@ $(function() { jQuery(function($) {
     phone.start();
   }
   
-  //var session;
   updateUI();
   
   $('#connectCall').click(function() {
@@ -128,7 +157,7 @@ $(function() { jQuery(function($) {
   
   $('#initVideo').click((e) => {
    // uncomment to test the local camera
-   // init(e); 
+   // init(e);
   });
 
   async function init(e) {
@@ -238,4 +267,4 @@ $(function() { jQuery(function($) {
       $('#errorMessage').show();
     }
   }
- }) }) ; //document ready  
+ }) }) ; //document ready
