@@ -1,14 +1,14 @@
 # webrtc-sip
 webrtc jssip prototype
 
-Must add SIP server configuration at index.html before testing.
-
+Must add SIP server configuration at _index.js_ before testing.
+```
 var configuration = {
     'uri': 'sip:user@domain',
     'password': '', // FILL PASSWORD HERE,
     'ws_servers': 'wss://<ws server ip or fqdn>:<port>/'
 };
-
+```
 # supported use cases
 __It's only tested on Chrome__ on CentOS
 
