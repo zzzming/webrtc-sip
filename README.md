@@ -9,14 +9,16 @@ var configuration = {
     'ws_servers': 'wss://<ws server ip or fqdn>:<port>/'
 };
 ```
+## How to start
+Open index.html in Chrome.
 
 ## supported use cases
 __It's only tested on Chrome__ on CentOS
 
-1. Outbound/Inbound call to a North American DID
-2. Outbound/Inbound call to an extention
-3. Video call to Monster UI WebRTC
-4. Conference call
+1. Outbound/Inbound call to a North American number
+2. Outbound/Inbound call to an extension
+3. Video call from/to Monster UI WebRTC
+4. Conference call(the remote video would the same as the local video feed)
 
 ## Known bugs
 1. If the remote terminates an outbound call, JsSIP will not trigger the right callback. But this seems 

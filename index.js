@@ -108,7 +108,7 @@ $(function() { jQuery(function($) {
         updateUI();
       });
       session.on('confirmed', function(e) { //when ACK received or sent
-        console.log('confirmed', e);
+        console.log('confirmed by', e.originator);
         // count the local and remote streams
         const localStreams = session.connection.getLocalStreams();
         console.log('confirmed with a number of local streams', localStreams.length);
@@ -116,8 +116,6 @@ $(function() { jQuery(function($) {
         const remoteStreams = session.connection.getRemoteStreams();
         console.log('confirmed with a number of remote streams', remoteStreams.length);
 
-        var localStream = localStreams[0];
-        //localView.src = localStream;
         var dtmfSender = session.connection.createDTMFSender(localStream.getAudioTracks()[0])
         session.sendDTMF = function(tone) {
           dtmfSender.insertDTMF(tone);
@@ -130,9 +128,7 @@ $(function() { jQuery(function($) {
         incomingCallAudio.pause();
 
         //attach remote stream to remoteView
-        //remoteAudio.src = window.URL.createObjectURL(e.stream);
         remoteAudio.srcObject = e.stream;
-        //remoteAudio.play(); this seems to mute the remote audio instead of playing
 
         // Attach local stream to selfView
         const peerconnection = session.connection;
