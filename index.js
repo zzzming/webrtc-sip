@@ -1,3 +1,7 @@
+/**
+ * A basic JsSIP phone
+ * Based on JsSIP 0.7.x version https://jssip.net/documentation/0.7.x/api/session/
+ */
 $(function() { jQuery(function($) {
   //must fill these configurations
   var configuration = {
@@ -99,11 +103,12 @@ $(function() { jQuery(function($) {
         console.log('session failed');
         completeSession();
       });
-      session.on('accepted', (e) => {
-        console.log('session accepted', e);
+      session.on('accepted', (e) => { // when 2xx received
+        console.log('session accepted by', e.originator);
         updateUI();
       });
-      session.on('confirmed', function() {
+      session.on('confirmed', function(e) { //when ACK received or sent
+        console.log('confirmed', e);
         // count the local and remote streams
         const localStreams = session.connection.getLocalStreams();
         console.log('confirmed with a number of local streams', localStreams.length);
@@ -127,16 +132,19 @@ $(function() { jQuery(function($) {
         //attach remote stream to remoteView
         //remoteAudio.src = window.URL.createObjectURL(e.stream);
         remoteAudio.srcObject = e.stream;
-        //remoteAudio.play();
+        //remoteAudio.play(); this seems to mute the remote audio instead of playing
 
         // Attach local stream to selfView
-        //localView.src = window.URL.createObjectURL(session.connection.getLocalStreams()[0]);
         const peerconnection = session.connection;
         console.log('addstream peerconnection local and remote stream counts ',
           peerconnection.getLocalStreams.length, peerconnection.getRemoteStreams.length);
         localView.srcObject = peerconnection.getLocalStreams()[0];
         remoteView.srcObject = peerconnection.getRemoteStreams()[0];
         
+      });
+      session.on('removestream', function(e) {
+        console.log('removestream', e);
+        //TODO: here to repaint/hide the video div
       });
       if (session.direction === 'incoming') {
         console.log('incoming session direction');
