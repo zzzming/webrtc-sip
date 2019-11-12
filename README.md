@@ -9,7 +9,8 @@ var configuration = {
     'ws_servers': 'wss://<ws server ip or fqdn>:<port>/'
 };
 ```
-# supported use cases
+
+## supported use cases
 __It's only tested on Chrome__ on CentOS
 
 1. Outbound/Inbound call to a North American DID
