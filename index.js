@@ -5,7 +5,7 @@
 $(function() { jQuery(function($) {
   //must fill these configurations
   var configuration = {
-    'uri': 'sip:user@domain',
+    'uri': 'sip:user@domain.com',
     'password': '', // FILL PASSWORD HERE,
     'ws_servers': 'wss://sandbox.2600hz.com:5065/'
   };
@@ -116,6 +116,7 @@ $(function() { jQuery(function($) {
         const remoteStreams = session.connection.getRemoteStreams();
         console.log('confirmed with a number of remote streams', remoteStreams.length);
 
+        var localStream = localStreams[0];
         var dtmfSender = session.connection.createDTMFSender(localStream.getAudioTracks()[0])
         session.sendDTMF = function(tone) {
           dtmfSender.insertDTMF(tone);
