@@ -9,6 +9,12 @@ var configuration = {
     'ws_servers': 'wss://<ws server ip or fqdn>:<port>/'
 };
 ```
+
+## JsSIP version
+The original prototype was based on JsSIP 0.7.x. The branch is `jssip0.7`.
+
+Since JsSIP 3.x, `addstream` in the session event has been removed. In order to acquire local and remote streams, we have to [add listeners to RTCPeerConnections directly](https://jssip.net/documentation/3.1.x/api/session/#event_accepted). This differs from JsSIP 0.7 version.
+
 ## How to start
 Open index.html in Chrome.
 

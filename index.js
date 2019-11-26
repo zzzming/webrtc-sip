@@ -1,13 +1,14 @@
 /**
  * A basic JsSIP phone
- * Based on JsSIP 0.7.x version https://jssip.net/documentation/0.7.x/api/session/
+ * Based on JsSIP 3.1 version https://jssip.net/documentation/3.1.x/api/session/
  */
 $(function() { jQuery(function($) {
   //must fill these configurations
+  const socket = new JsSIP.WebSocketInterface('wss://sandbox.2600hz.com:5065/');
   var configuration = {
     'uri': 'sip:user@domain.com',
-    'password': '', // FILL PASSWORD HERE,
-    'ws_servers': 'wss://sandbox.2600hz.com:5065/'
+    'password': '', // FILL PASSWORD HERE
+    sockets: [socket]
   };
   
   var incomingCallAudio = new window.Audio('https://code.bandwidth.com/media/incoming_alert.mp3');
@@ -25,17 +26,41 @@ $(function() { jQuery(function($) {
       audio: true,
       video: true
     },
+    rtcOfferConstraints: {
+      'offerToReceiveAudio': true,
+      'offerToReceiveVideo': true
+    },
     pcConfig: {
         iceServers: [
             { urls: ["stun:stun.l.google.com:19302"] }
         ],
-        iceTransportPolicy: "all",
-        rtcpMuxPolicy: "negotiate"
+        iceTransportPolicy: "all"
     }
   };
   
   var phone;
   var session;
+
+  /**
+   * This is added for JsJSP 3.x to listen to newRTCSession event directly.
+   */
+  function addStreams() {
+    session.connection.addEventListener('addstream', function(streamEvent) {
+      console.log('addstreams', streamEvent);
+      incomingCallAudio.pause();
+
+      //attach remote stream to remoteView
+      remoteAudio.srcObject = streamEvent.stream;
+
+      // Attach local stream to selfView
+      const peerconnection = session.connection;
+      console.log('addstream peerconnection local and remote stream counts ',
+        peerconnection.getLocalStreams.length, peerconnection.getRemoteStreams.length);
+      localView.srcObject = peerconnection.getLocalStreams()[0];
+      remoteView.srcObject = peerconnection.getRemoteStreams()[0];
+    });
+  };
+
   if (configuration.uri && configuration.password) {
     $('#errorMessage').hide();
 
@@ -67,6 +92,8 @@ $(function() { jQuery(function($) {
       configuration.password = null;
       updateUI();
     });
+    phone.on('newMessage', function (ev) {
+    })
     phone.on('newRTCSession', function(ev) {
       console.log('new session establishing ...', ev);
       //ev.request.call_id
@@ -117,31 +144,12 @@ $(function() { jQuery(function($) {
         console.log('confirmed with a number of remote streams', remoteStreams.length);
 
         var localStream = localStreams[0];
-        var dtmfSender = session.connection.createDTMFSender(localStream.getAudioTracks()[0])
+        var dtmfSender = session.connection.createDTMFSender(localStream.getAudioTracks()[0]);
         session.sendDTMF = function(tone) {
           dtmfSender.insertDTMF(tone);
         };
 
         updateUI();
-      });
-      session.on('addstream', function(e) {
-        console.log('addstream', e);
-        incomingCallAudio.pause();
-
-        //attach remote stream to remoteView
-        remoteAudio.srcObject = e.stream;
-
-        // Attach local stream to selfView
-        const peerconnection = session.connection;
-        console.log('addstream peerconnection local and remote stream counts ',
-          peerconnection.getLocalStreams.length, peerconnection.getRemoteStreams.length);
-        localView.srcObject = peerconnection.getLocalStreams()[0];
-        remoteView.srcObject = peerconnection.getRemoteStreams()[0];
-        
-      });
-      session.on('removestream', function(e) {
-        console.log('removestream', e);
-        //TODO: here to repaint/hide the video div
       });
       if (session.direction === 'incoming') {
         console.log('incoming session direction');
@@ -158,6 +166,7 @@ $(function() { jQuery(function($) {
     var dest = $('#toField').val();
     phone.call(dest, callOptions);
     updateUI();
+    addStreams();
   });
   
   $('#initVideo').click((e) => {
@@ -190,6 +199,7 @@ $(function() { jQuery(function($) {
   
   $('#answer').click(function() {
     session.answer(callOptions);
+    addStreams();
   });
   
   var hangup = function() {
@@ -234,7 +244,7 @@ $(function() { jQuery(function($) {
             console.log('inbound call');
             $('#incomingCallNumber').html(session.remote_identity.uri);
             $('#incomingCall').show();
-            $('#callControl').hide()
+            $('#callControl').hide();
             $('#incomingCall').show();
           } else {
             $('#callInfoText').html('Ringing...');
